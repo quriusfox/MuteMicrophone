@@ -126,9 +126,20 @@ HRESULT mute()
         cleanup(mic);
         return S_FALSE;
     }
-    
+
     // Change the state of the microphone based on it previous state
     mic->micVolume->SetMute(!wasMuted, NULL);
+
+    // Inform user about the microphone status with simple messagebox
+    // TODO: Windows notifications
+    if (!wasMuted)
+    {
+        MessageBox(NULL, L"Microphone muted", L"Mute status", MB_OK);
+    }
+    else
+    {
+        MessageBox(NULL, L"Microphone unmuted", L"Mute status", MB_OK);
+    }
 
     // Cleanup
     cleanup(mic);

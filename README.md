@@ -5,7 +5,7 @@ Simple C++ application that registers a keyboard shortcut to mute microphone on 
 This app was created mainly because Windows for some reason doesn't come with a universal shortcut to mute the microphone. I bought the [Keychron K8 Pro](https://www.keychron.com/products/keychron-k8-pro-qmk-via-wireless-mechanical-keyboard) mechanical keyboard and was very disappointed to find that to use the microphone mute button on the keyboard in Windows, I can only register it to a keyboard shortcut (macro) or to a specific code (the keyboard uses [VIA](https://www.caniusevia.com/)). Since Windows didn't provide either of these for the microphone mute functionality, I decided to create my own solution. It's not that there are no other solutions already, but I wanted to make it as easy and efficient as possible without unnecessary modifications and features and, as a bonus, learn something new. Just emulate the function of the mute button, nothing else.
 
 # Usage
-1. Compile the source
+1. Compile the source or download from release
 2. Open Win+r and type shell:startup
 3. Copy the compiled binary to the shell:startup directory
 

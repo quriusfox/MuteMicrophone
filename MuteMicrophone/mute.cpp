@@ -27,7 +27,7 @@ using namespace Microsoft::WRL::Wrappers;
 MICROPHONE* mic; // Global microphone instance to manage microphone-related actions
 
 // Utility function to set the value of an XML node (used in toast notifications)
-void SetNodeValue(IXmlDocument* doc, IXmlNode* node, const wchar_t* value)
+VOID SetNodeValue(IXmlDocument* doc, IXmlNode* node, const wchar_t* value)
 {
     // Create a text node with the given value
     ComPtr<IXmlText> textNode;
@@ -42,7 +42,7 @@ void SetNodeValue(IXmlDocument* doc, IXmlNode* node, const wchar_t* value)
 }
 
 // Function to show a Windows toast notification
-void ShowNotification(const std::wstring& title, const std::wstring& message)
+VOID ShowNotification(const std::wstring& title, const std::wstring& message)
 {
     // Initialize COM in single-threaded apartment (STA) mode
     HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -242,7 +242,7 @@ HRESULT mute()
     }
 
     // Get the audio endpoint volume control interface
-    hr = mic->pMicDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL, (void**)&mic->micVolume);
+    hr = mic->pMicDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL, (VOID**)&mic->micVolume);
 
     if (FAILED(hr))
     {
@@ -297,7 +297,7 @@ VOID cleanup(MICROPHONE* mic)
 }
 
 // Entry point of the program
-int main()
+DWORD main()
 {
     BOOL success;
     HWND hWnd = createWindow(); // Create a hidden window to capture hotkey events

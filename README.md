@@ -22,4 +22,5 @@ If you are using VIA keyboard, you can register a new macro and map it to the *a
 
 # Todo
 - [x] Add indication of microphone being muted
+- [ ] Make the tray icon responsive to microphone status changes from other software or OS
 - [ ] Add the option to specify custom keyboard shortcut in case of a colision with other software

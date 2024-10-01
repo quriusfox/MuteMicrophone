@@ -130,9 +130,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="mute.cpp" />
+    <ClCompile Include="toast.cpp" />
+    <ClCompile Include="tray.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mute.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="toast.h" />
+    <ClInclude Include="tray.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\mute.ico" />
+    <Image Include="Resources\unmute.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MuteMicrophone.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

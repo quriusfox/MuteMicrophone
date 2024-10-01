@@ -18,10 +18,38 @@
     <ClCompile Include="mute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="toast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mute.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="toast.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tray.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\mute.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\unmute.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MuteMicrophone.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

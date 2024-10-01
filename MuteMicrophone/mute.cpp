@@ -3,12 +3,8 @@
 #include <iostream>
 #include <tchar.h>
 #include "mute.h"
-#include <wrl.h>
-#include <windows.ui.notifications.h>
-#include <NotificationActivationCallback.h>
-#include <wrl/wrappers/corewrappers.h> // For HStringReference
-#include <windows.foundation.h> // For Windows::Foundation
-#include <shobjidl_core.h>
+#include "tray.h"
+#include "toast.h"
 
 #pragma comment(lib, "WindowsApp.lib") // Links with the necessary Windows libraries
 
@@ -18,148 +14,53 @@
 
 //#define DEBUG
 
-// Namespace declarations for WRL and WinRT types
-using namespace ABI::Windows::Data::Xml::Dom;
-using namespace ABI::Windows::UI::Notifications;
-using namespace Microsoft::WRL;
-using namespace Microsoft::WRL::Wrappers;
+// Global microphone instance to manage microphone-related actions
+MICROPHONE* mic;
 
-MICROPHONE* mic; // Global microphone instance to manage microphone-related actions
-
-// Utility function to set the value of an XML node (used in toast notifications)
-VOID SetNodeValue(IXmlDocument* doc, IXmlNode* node, const wchar_t* value)
-{
-    // Create a text node with the given value
-    ComPtr<IXmlText> textNode;
-    doc->CreateTextNode(HStringReference(value).Get(), &textNode);
-
-    // Append the text node to the given XML node
-    ComPtr<IXmlNode> text;
-    textNode.As(&text);
-
-    ComPtr<IXmlNode> appendedChild;
-    node->AppendChild(text.Get(), &appendedChild);
-}
-
-// Function to show a Windows toast notification
-VOID ShowNotification(const std::wstring& title, const std::wstring& message)
-{
-    // Initialize COM in single-threaded apartment (STA) mode
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-
-    if (FAILED(hr))
-    {
-        std::wcout << L"COM initialization failed: " << hr << std::endl;
-        return;
-    }
-
-    // Retrieve the toast notification manager
-    ComPtr<IToastNotificationManagerStatics> toastManager;
-
-    hr = Windows::Foundation::GetActivationFactory(
-        HStringReference(RuntimeClass_Windows_UI_Notifications_ToastNotificationManager).Get(),
-        &toastManager);
-
-    if (FAILED(hr))
-    {
-        std::wcout << L"Failed to get ToastNotificationManager: " << hr << std::endl;
-        CoUninitialize();
-        return;
-    }
-
-    // Create a toast notification template (type ToastText02: Title + message)
-    ComPtr<IXmlDocument> toastXml;
-    
-    hr = toastManager->GetTemplateContent(ToastTemplateType_ToastText02, &toastXml);
-    
-    if (FAILED(hr))
-    {
-        std::wcout << L"Failed to get template content: " << hr << std::endl;
-        CoUninitialize();
-        return;
-    }
-
-    // Get the text nodes where we will set the title and message
-    ComPtr<IXmlNodeList> textNodes;
-    toastXml->GetElementsByTagName(HStringReference(L"text").Get(), &textNodes);
-
-    // Set the notification title
-    ComPtr<IXmlNode> titleNode;
-    
-    textNodes->Item(0, &titleNode); // 0 is ID for title
-    SetNodeValue(toastXml.Get(), titleNode.Get(), title.c_str());
-
-    // Set the notification message
-    ComPtr<IXmlNode> messageNode;
-    
-    textNodes->Item(1, &messageNode); // 1 is ID for message
-    SetNodeValue(toastXml.Get(), messageNode.Get(), message.c_str());
-
-    // Create a toast notification from the XML
-    ComPtr<IToastNotificationFactory> toastFactory;
-    
-    hr = Windows::Foundation::GetActivationFactory(
-        HStringReference(RuntimeClass_Windows_UI_Notifications_ToastNotification).Get(),
-        &toastFactory);
-
-    if (FAILED(hr))
-    {
-        std::wcout << L"Failed to get ToastNotification factory: " << hr << std::endl;
-        CoUninitialize();
-        return;
-    }
-
-    ComPtr<IToastNotification> toast;
-    
-    hr = toastFactory->CreateToastNotification(toastXml.Get(), &toast);
-    
-    if (FAILED(hr))
-    {
-        std::wcout << L"Failed to create ToastNotification: " << hr << std::endl;
-        CoUninitialize();
-        return;
-    }
-
-    // Get the toast notifier and show the notification
-    ComPtr<IToastNotifier> notifier;
-    
-    hr = toastManager->CreateToastNotifierWithId(
-        HStringReference(L"MuteMicrophone").Get(), &notifier);
-
-    if (SUCCEEDED(hr))
-    {
-        notifier->Show(toast.Get());
-    }
-    else
-    {
-        std::wcout << L"Failed to show ToastNotification: " << hr << std::endl;
-    }
-
-    // Clean up COM
-    CoUninitialize();
-}
-
-// Window procedure function to handle hotkey events
+/*
+ * Window procedure function to handle hotkey events
+ */
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    if (msg == WM_HOTKEY)
-    {
-        std::wcout << L"WM_HOTKEY received\n";
-        HRESULT hr = mute(); // Call mute/unmute function on hotkey press
+    HRESULT hr;
 
-        if (SUCCEEDED(hr))
-        {
-            std::wcout << L"Microphone status changed\n";
-        }
-        else
-        {
-            std::wcout << L"Failed to change microphone status\n";
-        }
+    switch (msg)
+    {
+        case WM_HOTKEY:
+            std::wcout << L"WM_HOTKEY received\n";
+            hr = mute(); // Call mute/unmute function on hotkey press
+
+            if (SUCCEEDED(hr))
+            {
+                std::wcout << L"Microphone status changed\n";
+            }
+            else
+            {
+                std::wcout << L"Failed to change microphone status\n";
+            }
+            break;
+
+        case WM_TRAYICON:
+            if (LOWORD(lParam) == WM_LBUTTONDOWN)
+            {
+                // Toggle microphone mute/unmute when left-clicking on the tray icon
+                mute();
+            }
+            break;
+
+        case WM_DESTROY:
+            // Remove the tray icon when the window is destroyed
+            RemoveTrayIcon();
+            PostQuitMessage(0);
+            break;
     }
+    
     return DefWindowProc(hWnd, msg, wParam, lParam); // Default window message handling
 }
 
-// Create a hidden window to capture hotkey events
+/*
+ * Create a hidden window to capture hotkey events
+ */
 HWND createWindow()
 {
     // Show the console window for debugging purposes
@@ -191,10 +92,15 @@ HWND createWindow()
         NULL, NULL, GetModuleHandle(NULL), NULL
     );
 
+    // Initialize tray icon
+    InitTrayIcon(hWnd, wc.hInstance);
+
     return hWnd;
 }
 
-// Message loop to listen for hotkey events
+/*
+ * Message loop to listen for hotkey events
+ */
 VOID msgListenLoop()
 {
     MSG msg = { 0 };
@@ -207,7 +113,9 @@ VOID msgListenLoop()
     }
 }
 
-// Function to mute/unmute the microphone
+/*
+ * Function to mute/unmute the microphone
+ */
 HRESULT mute()
 {
     BOOL wasMuted;
@@ -282,11 +190,16 @@ HRESULT mute()
         ShowNotification(L"Mute status", L"Microphone unmuted");
     }
 
+    // Update the tray icon based on the new mute status
+    UpdateTrayIcon(!wasMuted);
+
     cleanup(mic); // Clean up after muting/unmuting
     return S_OK;
 }
 
-// Cleanup microphone resources
+/*
+ * Cleanup microphone resources
+ */
 VOID cleanup(MICROPHONE* mic)
 {
     if (mic->micVolume) mic->micVolume->Release();
@@ -296,7 +209,9 @@ VOID cleanup(MICROPHONE* mic)
     CoUninitialize(); // Uninitialize COM
 }
 
-// Entry point of the program
+/*
+ * Entry point of the program
+ */
 DWORD main()
 {
     BOOL success;

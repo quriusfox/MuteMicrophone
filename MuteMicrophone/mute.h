@@ -14,3 +14,4 @@ HWND createWindow();
 VOID msgListenLoop();
 VOID cleanup(MICROPHONE* mic);
 HRESULT mute();
+VOID UpdateTrayIcon(BOOL isMuted);
